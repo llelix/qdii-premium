@@ -8,23 +8,6 @@ const colors = {
   gray: '\x1b[90m',
 };
 
-const ANSI_RE = /\u001b\[[0-9;]*m/g;
-
-function stripAnsi(text) {
-  return String(text).replace(ANSI_RE, '');
-}
-
-function visibleWidth(text) {
-  return stripAnsi(text).length;
-}
-
-function pad(text, width, align = 'left') {
-  const visible = stripAnsi(text);
-  const padWidth = Math.max(0, width - visible.length);
-  if (align === 'right') return `${' '.repeat(padWidth)}${text}`;
-  return `${text}${' '.repeat(padWidth)}`;
-}
-
 function colorize(text, color) {
   return `${colors[color] || ''}${text}${colors.reset}`;
 }
@@ -64,13 +47,13 @@ function displayTable(funds, indices, dataSource = '同花顺问财') {
     console.log(colorize('─'.repeat(120), 'gray'));
 
     const header =
-      pad(colorize('代码', 'cyan'), 10) +
-      pad(colorize('名称', 'cyan'), 22) +
-      pad(colorize('现价', 'cyan'), 10, 'right') +
-      pad(colorize('净值', 'cyan'), 10, 'right') +
-      pad(colorize('溢价率', 'cyan'), 12, 'right') +
-      pad(colorize('净值日期', 'cyan'), 12, 'right') +
-      pad(colorize('涨跌', 'cyan'), 10, 'right');
+      colorize('代码', 'cyan').padEnd(10) + '| ' +
+      colorize('名称', 'cyan').padEnd(20) + '| ' +
+      colorize('现价', 'cyan').padStart(8) + ' | ' +
+      colorize('净值', 'cyan').padStart(8) + ' | ' +
+      colorize('溢价率', 'cyan').padStart(10) + ' | ' +
+      colorize('净值日期', 'cyan').padStart(12) + ' | ' +
+      colorize('涨跌', 'cyan').padStart(8);
 
     console.log(header);
     console.log(colorize('─'.repeat(120), 'gray'));
@@ -89,16 +72,15 @@ function displayTable(funds, indices, dataSource = '同花顺问财') {
         }
       }
 
-      const row =
-        pad(f.code, 10) +
-        pad(f.name.substring(0, 20), 22) +
-        pad(price, 10, 'right') +
-        pad(nav, 10, 'right') +
-        pad(premium, 12, 'right') +
-        pad(navDate, 12, 'right') +
-        pad(indexChg, 10, 'right');
-
-      console.log(row);
+      console.log(
+        f.code.padEnd(10) + '| ' +
+        f.name.substring(0, 18).padEnd(20) + '| ' +
+        String(price).padStart(8) + ' | ' +
+        String(nav).padStart(8) + ' | ' +
+        String(premium).padStart(10) + ' | ' +
+        String(navDate).padStart(12) + ' | ' +
+        String(indexChg).padStart(8)
+      );
     }
   }
 
