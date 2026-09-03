@@ -1,0 +1,24 @@
+{
+  "name": "qdii-premium",
+  "version": "1.0.0",
+  "description": "QDII基金溢价率查询CLI - 纳指、标普、道琼斯、美国50",
+  "main": "src/index.js",
+  "bin": {
+    "qdii-premium": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "premium": "node src/index.js"
+  },
+  "keywords": [
+    "qdii",
+    "fund",
+    "premium",
+    "cli",
+    "eastmoney"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}
