@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 require('dotenv').config();
 const { FUNDS } = require('./funds');
-const { displayTable, displayJson } = require('./display');
+const { displayTable, displayJson, displayHistoryTable } = require('./display');
 const { fetchQDIIPremiumFromIwencai } = require('./ths_wencai');
+const { ensureDb, saveSnapshot, loadLatestFunds, loadFundHistory } = require('./db');
 
 function normalizeIwencaiFund(fund) {
   const name = String(fund.name || '');
@@ -66,6 +67,9 @@ async function main() {
   const indexArg = args.find(a => a.startsWith('--index='));
   const jsonOutput = args.includes('--json');
   const showAll = args.includes('--all');
+  const updateArg = args.includes('--update');
+  const codeArg = args.find(a => a.startsWith('--code='));
+  const historyArg = args.includes('--history');
 
   let indices = null;
   if (indexArg) {
@@ -83,15 +87,36 @@ async function main() {
 
   let funds = [];
   let dataSource = '同花顺问财';
-  const apiKey = process.env.IWENCAI_API_KEY;
-  if (!apiKey) {
-    console.log('❌ 使用同花顺数据源需要设置 IWENCAI_API_KEY 环境变量');
-    console.log('   export IWENCAI_API_KEY=your_api_key');
-    process.exit(1);
+
+  if (historyArg && codeArg) {
+    const code = codeArg.split('=')[1];
+    funds = await loadFundHistory(code);
+    dataSource = '本地数据库';
+    console.log(`✅ 成功获取基金 ${code} 的 ${funds.length} 条历史记录\n`);
+    if (jsonOutput) {
+      displayJson(funds);
+    } else {
+      displayHistoryTable(funds);
+    }
+    return;
   }
-  const rawFunds = await fetchQDIIPremiumFromIwencai(apiKey);
-  const normalized = rawFunds.map(normalizeIwencaiFund);
-  funds = filterFundsByWhitelist(normalized);
+
+  if (updateArg) {
+    const apiKey = process.env.IWENCAI_API_KEY;
+    if (!apiKey) {
+      console.log('❌ 使用同花顺数据源需要设置 IWENCAI_API_KEY 环境变量');
+      console.log('   export IWENCAI_API_KEY=your_api_key');
+      process.exit(1);
+    }
+    const rawFunds = await fetchQDIIPremiumFromIwencai(apiKey);
+    const normalized = rawFunds.map(normalizeIwencaiFund);
+    funds = filterFundsByWhitelist(normalized);
+    await saveSnapshot(funds);
+    console.log(`💾 已保存 ${funds.length} 只基金数据到本地数据库`);
+  } else {
+    funds = await loadLatestFunds();
+    dataSource = '本地数据库';
+  }
 
   if (funds.length === 0) {
     console.log('❌ 未能获取到任何基金数据，请检查网络连接或API Key');
