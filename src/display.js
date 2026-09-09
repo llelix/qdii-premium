@@ -8,6 +8,12 @@ const colors = {
   gray: '\x1b[90m',
 };
 
+const ANSI_RE = /\u001b\[[0-9;]*m/g;
+
+function stripAnsi(text) {
+  return String(text).replace(ANSI_RE, '');
+}
+
 function colorize(text, color) {
   return `${colors[color] || ''}${text}${colors.reset}`;
 }
@@ -20,6 +26,32 @@ function formatPremium(premium) {
   if (premium > 1) return colorize(pct, 'yellow');
   if (premium < -1) return colorize(pct, 'green');
   return pct;
+}
+
+function drawPremiumChart(funds) {
+  const valid = funds.filter(f => f.realTimePremium !== null && f.realTimePremium !== undefined);
+  if (valid.length < 2) {
+    return colorize('\n📈 数据不足，无法绘制折线图（需要至少2条记录）', 'yellow');
+  }
+
+  const values = valid.map(f => parseFloat(f.realTimePremium.toFixed(2)));
+  const config = {
+    height: 10,
+    width: 60,
+    padding: '  ',
+    colors: [colors.cyan]
+  };
+
+  try {
+    const asciiChart = require('asciichart').plot(values, config);
+    const title = colorize('📈 溢价率走势图', 'cyan');
+    const lines = asciiChart.split('\n');
+    const maxLen = Math.max(...lines.map(l => stripAnsi(l).length));
+    const padded = lines.map(l => l.padEnd(maxLen));
+    return title + '\n' + padded.join('\n');
+  } catch (e) {
+    return colorize('\n📈 折线图生成失败', 'yellow');
+  }
 }
 
 function displayTable(funds, indices, dataSource = '同花顺问财') {
@@ -109,6 +141,12 @@ function displayHistoryTable(funds) {
   console.log('\n' + colorize('═'.repeat(90), 'cyan'));
   console.log(colorize(`  ${title}`, 'cyan') + colorize(`  (共 ${funds.length} 条记录)`, 'gray'));
   console.log(colorize('═'.repeat(90), 'cyan'));
+
+  const chart = drawPremiumChart(funds);
+  if (chart) {
+    console.log(chart);
+    console.log('');
+  }
 
   const header =
     colorize('时间', 'cyan').padEnd(22) + '| ' +

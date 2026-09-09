@@ -4,6 +4,7 @@ const { FUNDS } = require('./funds');
 const { displayTable, displayJson, displayHistoryTable } = require('./display');
 const { fetchQDIIPremiumFromIwencai } = require('./ths_wencai');
 const { ensureDb, saveSnapshot, loadLatestFunds, loadFundHistory } = require('./db');
+const { setApiKey, getApiKey } = require('./config');
 
 function normalizeIwencaiFund(fund) {
   const name = String(fund.name || '');
@@ -66,6 +67,7 @@ function filterFundsByWhitelist(funds) {
 async function main() {
   const args = process.argv.slice(2);
   const helpArg = args.includes('-h') || args.includes('--help');
+  const configArg = args.find(a => a.startsWith('--config='));
 
   if (helpArg) {
     console.log(`
@@ -85,17 +87,55 @@ QDII基金溢价率查询CLI
   --json              JSON 格式输出
   --all               显示所有指数
 
+配置同花顺 API Key:
+  qdii-premium config set-api-key <your-api-key>
+  qdii-premium config get-api-key
+
 示例:
   qdii-premium --index=nasdaq
   qdii-premium --code=159659 --history
   qdii-premium --update
-  qdii-premium --sync
-  qdii-premium --pull --index=sp500
+  qdii-premium config set-api-key sk-xxxxx
 `);
     return;
   }
 
+  if (configArg) {
+    const configAction = configArg.split('=')[1];
+    if (configAction === 'set-api-key') {
+      let apiKey = null;
+      
+      const keyValue = args.find(a => a.startsWith('--key='));
+      if (keyValue) {
+        apiKey = keyValue.split('=')[1];
+      } else {
+        const configIndex = args.indexOf('config');
+        const possibleKey = args[configIndex + 2];
+        if (possibleKey && !possibleKey.startsWith('--')) {
+          apiKey = possibleKey;
+        }
+      }
+      
+      if (!apiKey) {
+        console.log('❌ 请提供 API Key');
+        console.log('   用法: qdii-premium config set-api-key <your-api-key>');
+        console.log('   或: qdii-premium config set-api-key --key=<your-api-key>');
+        process.exit(1);
+      }
+      setApiKey(apiKey);
+      return;
+    } else if (configAction === 'get-api-key') {
+      getApiKey();
+      return;
+    } else {
+      console.log(`❌ 未知的配置操作: ${configAction}`);
+      console.log('   可用操作: set-api-key, get-api-key');
+      process.exit(1);
+    }
+  }
+
   const indexArg = args.find(a => a.startsWith('--index='));
+  const keyArg = args.find(a => a.startsWith('--key='));
   const jsonOutput = args.includes('--json');
   const showAll = args.includes('--all');
   const updateArg = args.includes('--update');
