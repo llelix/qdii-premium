@@ -19,6 +19,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "chinese-days": "^1.5.9",
     "dotenv": "^17.4.2",
     "sqlite3": "^6.0.1"
   }

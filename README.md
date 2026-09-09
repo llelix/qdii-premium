@@ -68,5 +68,5 @@ qdii-premium --json
 已配置 crontab，每天 10:00 和 14:00 自动更新数据：
 
 ```bash
-0 10,14 * * * cd /home/llelix/over-price && /usr/bin/env node src/index.js --update >> /home/llelix/over-price/data/cron.log 2>&1
+0 10,14 * * * cd /home/llelix/over-price && /usr/bin/env node src/is_trading_day.js | grep -q true && /usr/bin/env qdii-premium --update >> /home/llelix/over-price/data/cron.log 2>&1
 ```
