@@ -31,6 +31,14 @@ const FUNDS = {
   us50: [
     { code: '513850', name: '美国50ETF易方达' },
     { code: '159577', name: '美国50ETF汇添富' },
+  ],
+  others: [
+    { code: '513030', name: '德国etf华安' },
+    { code: '159561', name: '德国etf嘉实' },
+    { code: '513080', name: '法国etf华安' },
+    { code: '513520', name: '日经ETF华夏' },
+    { code: '513880', name: '日经225ETF华安' },
+    { code: '513310', name: '中韩半导体ETF' },
   ]
 };
 

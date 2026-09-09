@@ -44,6 +44,7 @@ function saveFunds(db, funds) {
     );
     let completed = 0;
     const total = funds.length;
+    const changes = new Map();
 
     if (total === 0) {
       stmt.finalize();
@@ -51,29 +52,63 @@ function saveFunds(db, funds) {
       return;
     }
 
-    funds.forEach((f) => {
-      stmt.run(
-        f.code,
-        f.name || null,
-        f.index || null,
-        f.price || null,
-        f.nav || null,
-        f.realTimePremium || f.latestPremium || f.premium || null,
-        f.navDate || null,
-        f.indexChange || null,
-        f.raw ? JSON.stringify(f.raw) : null,
-        (err) => {
-          if (err) console.error(`Failed to save fund ${f.code}:`, err.message);
-          completed++;
-          if (completed === total) {
-            stmt.finalize((finalizeErr) => {
-              if (finalizeErr) reject(finalizeErr);
-              else resolve();
-            });
-          }
+    const prevPromises = funds.map((f) => {
+      return new Promise((resolvePrev, rejectPrev) => {
+        if (f.price && !f.indexChange) {
+            db.all(
+              `SELECT price FROM fund_snapshots WHERE code = ? AND price IS NOT NULL ORDER BY id DESC LIMIT 1 OFFSET 1`,
+              [f.code],
+              (err, rows) => {
+              if (err) {
+                console.error(`Failed to get previous snapshot for ${f.code}:`, err.message);
+                changes.set(f.code, null);
+              } else if (rows && rows.length > 0 && rows[0].price) {
+                const prevPrice = rows[0].price;
+                if (prevPrice !== 0) {
+                  changes.set(f.code, (f.price - prevPrice) / prevPrice);
+                } else {
+                  changes.set(f.code, null);
+                }
+              } else {
+                changes.set(f.code, null);
+              }
+              resolvePrev();
+            }
+          );
+        } else {
+          changes.set(f.code, f.indexChange || null);
+          resolvePrev();
         }
-      );
+      });
     });
+
+    Promise.all(prevPromises).then(() => {
+      funds.forEach((f) => {
+        const indexChange = changes.get(f.code);
+
+        stmt.run(
+          f.code,
+          f.name || null,
+          f.index || null,
+          f.price || null,
+          f.nav || null,
+          f.realTimePremium || f.latestPremium || f.premium || null,
+          f.navDate || null,
+          indexChange,
+          f.raw ? JSON.stringify(f.raw) : null,
+          (err) => {
+            if (err) console.error(`Failed to save fund ${f.code}:`, err.message);
+            completed++;
+            if (completed === total) {
+              stmt.finalize((finalizeErr) => {
+                if (finalizeErr) reject(finalizeErr);
+                else resolve();
+              });
+            }
+          }
+        );
+      });
+    }).catch(reject);
   });
 }
 
@@ -100,10 +135,10 @@ function getLatestSnapshot(db) {
       `SELECT s.code, s.name, s.idx, s.price, s.nav, s.premium, s.nav_date, s.index_change, s.raw, s.created_at
        FROM fund_snapshots s
        INNER JOIN (
-         SELECT code, MAX(datetime(created_at)) AS max_created
+         SELECT code, MAX(id) AS max_id
          FROM fund_snapshots
          GROUP BY code
-       ) latest ON s.code = latest.code AND datetime(s.created_at) = latest.max_created`,
+       ) latest ON s.id = latest.max_id`,
       (err, rows) => {
         if (err) reject(err);
         else resolve(rows || []);

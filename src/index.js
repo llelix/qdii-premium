@@ -12,6 +12,7 @@ function normalizeIwencaiFund(fund) {
   else if (/标普|sp500|s&p/i.test(name)) index = 'sp500';
   else if (/道琼斯|dow|djia/i.test(name)) index = 'dow';
   else if (/美国50|us50|MSCI美国/i.test(name)) index = 'us50';
+  else if (/德国|法国|日经|中韩|其他/i.test(name)) index = 'others';
 
   return {
     code: fund.code,

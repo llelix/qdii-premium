@@ -28,6 +28,7 @@ function displayTable(funds, indices, dataSource = '同花顺问财') {
     sp500: '📊 标普500',
     dow: '🏢 道琼斯',
     us50: '🇺🇸 美国50',
+    others: '📦 其他',
   };
 
   const targetIndices = indices || Object.keys(indexNames);
