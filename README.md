@@ -57,3 +57,13 @@ qdii-premium --json
 
 ### 美国50
 513850, 159577
+
+
+
+## 定时任务
+
+已配置 crontab，每天 10:00 和 14:00 自动更新数据：
+
+```bash
+0 10,14 * * * cd /home/llelix/over-price && /usr/bin/env node src/index.js --update >> /home/llelix/over-price/data/cron.log 2>&1
+```

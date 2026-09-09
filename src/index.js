@@ -64,10 +64,42 @@ function filterFundsByWhitelist(funds) {
 
 async function main() {
   const args = process.argv.slice(2);
+  const helpArg = args.includes('-h') || args.includes('--help');
+
+  if (helpArg) {
+    console.log(`
+QDII基金溢价率查询CLI
+
+用法:
+  qdii-premium [选项]
+
+选项:
+  -h, --help          显示帮助信息
+  --index=<指数>       指定指数: nasdaq, sp500, dow, us50
+  --code=<基金代码>     基金代码，配合 --history 使用
+  --history           查看单个基金历史记录
+  --update            从同花顺问财更新数据并保存到本地数据库
+  --sync              同步本地数据到 Cloudflare D1
+  --pull              从 Cloudflare D1 读取数据
+  --json              JSON 格式输出
+  --all               显示所有指数
+
+示例:
+  qdii-premium --index=nasdaq
+  qdii-premium --code=159659 --history
+  qdii-premium --update
+  qdii-premium --sync
+  qdii-premium --pull --index=sp500
+`);
+    return;
+  }
+
   const indexArg = args.find(a => a.startsWith('--index='));
   const jsonOutput = args.includes('--json');
   const showAll = args.includes('--all');
   const updateArg = args.includes('--update');
+  const syncArg = args.includes('--sync');
+  const pullArg = args.includes('--pull');
   const codeArg = args.find(a => a.startsWith('--code='));
   const historyArg = args.includes('--history');
 
