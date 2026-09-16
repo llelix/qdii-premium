@@ -14,6 +14,8 @@ npm link
 ```bash
 # 查看所有指数溢价率
 qdii-premium
+# 从同花顺获取新纪录
+qdii-premium --update
 
 # 查看指定指数
 qdii-premium --index=nasdaq
