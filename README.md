@@ -72,3 +72,6 @@ qdii-premium --json
 ```bash
 0 10,14 * * * cd /home/llelix/over-price && /usr/bin/env node src/is_trading_day.js | grep -q true && /usr/bin/env qdii-premium --update >> /home/llelix/over-price/data/cron.log 2>&1
 ```
+同花顺api-key获取
+<img width="1910" height="873" alt="image" src="https://github.com/user-attachments/assets/d07b0513-39d9-414d-ab57-7ac261688935" />
+
