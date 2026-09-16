@@ -34,12 +34,13 @@ qdii-premium --json
 ## 同花顺问财 API 配置
 
 1. 访问 https://www.iwencai.com/skillhub 注册并获取 API Key
-2. 设置环境变量：
+<img width="1910" height="873" alt="image" src="https://github.com/user-attachments/assets/d07b0513-39d9-414d-ab57-7ac261688935" />
+3. 设置环境变量：
    ```bash
    export IWENCAI_API_KEY=your_api_key
    export IWENCAI_BASE_URL=https://openapi.iwencai.com
    ```
-3. 或直接写入 `~/.bashrc`：
+4. 或直接写入 `~/.bashrc`：
    ```bash
    echo 'export IWENCAI_API_KEY=your_api_key' >> ~/.bashrc
    echo 'export IWENCAI_BASE_URL=https://openapi.iwencai.com' >> ~/.bashrc
@@ -72,6 +73,5 @@ qdii-premium --json
 ```bash
 0 10,14 * * * cd /home/llelix/over-price && /usr/bin/env node src/is_trading_day.js | grep -q true && /usr/bin/env qdii-premium --update >> /home/llelix/over-price/data/cron.log 2>&1
 ```
-同花顺api-key获取
-<img width="1910" height="873" alt="image" src="https://github.com/user-attachments/assets/d07b0513-39d9-414d-ab57-7ac261688935" />
+
 
